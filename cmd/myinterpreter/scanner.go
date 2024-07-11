@@ -115,6 +115,11 @@ func (s *Scanner) ScanToken() {
 		} else {
 			s.AddToken(Slash, nil)
 		}
+	case ' ':
+	case '\r':
+	case '\t':
+	case '\n':
+		s.line += 1
 	default:
 		s.AddError()
 	}
