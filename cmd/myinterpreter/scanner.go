@@ -1,8 +1,11 @@
 package main
 
+import "fmt"
+
 type Scanner struct {
 	Source  []byte
 	Tokens  []Token
+	Errors  []string
 	start   int
 	current int
 	line    int
@@ -34,6 +37,12 @@ func (s *Scanner) AddToken(t TokenType, literal any) {
 	s.Tokens = append(s.Tokens, Token{t, text, literal, s.line})
 }
 
+func (s *Scanner) AddError() {
+	text := string(s.Source[s.start:s.current])
+	msg := fmt.Sprintf("[line %d] Error: Unexpected character: %v\n", s.line, text)
+	s.Errors = append(s.Errors, msg)
+}
+
 func (s *Scanner) ScanToken() {
 	switch s.Advance() {
 	case '(':
@@ -56,12 +65,14 @@ func (s *Scanner) ScanToken() {
 		s.AddToken(Semicolon, nil)
 	case '*':
 		s.AddToken(Star, nil)
+	default:
+		s.AddError()
 	}
 }
 
 func (s *Scanner) ScanTokens() []Token {
 	for i := 0; !s.IsAtEnd(); i++ {
-		// fmt.Fprintf(os.Stderr, "ScanTokens.loop:%v | IsAtEnd:%v\n", i, s.IsAtEnd())
+		// fmt.Fprintf(os.Stderr, "[ScanTokens] i:%v | IsAtEnd:%v\n", i, s.IsAtEnd())
 		s.start = s.current
 		s.ScanToken()
 	}

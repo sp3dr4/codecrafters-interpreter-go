@@ -32,5 +32,12 @@ func main() {
 		fmt.Println(t.String())
 	}
 
+	if len(scanner.Errors) > 0 {
+		for _, e := range scanner.Errors {
+			fmt.Fprintln(os.Stderr, e)
+		}
+		os.Exit(65)
+	}
+
 	fmt.Fprintln(os.Stderr, "=== End ===")
 }
