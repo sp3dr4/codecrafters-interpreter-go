@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type TokenType int
 
@@ -25,6 +28,7 @@ const (
 	Less
 	LessEqual
 	String
+	Number
 	EOF
 )
 
@@ -49,6 +53,7 @@ var tokenTypeName = map[TokenType]string{
 	Less:         "LESS",
 	LessEqual:    "LESS_EQUAL",
 	String:       "STRING",
+	Number:       "NUMBER",
 	EOF:          "EOF",
 }
 
@@ -70,6 +75,11 @@ func (t *Token) String() string {
 		l = "null"
 	case string:
 		l = v
+	case float64:
+		l = fmt.Sprintf("%v", v)
+		if !strings.Contains(l, ".") {
+			l = fmt.Sprintf("%s.0", l)
+		}
 	default:
 		l = fmt.Sprintf("%v", v)
 	}

@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
+	"strconv"
 )
 
 type Scanner struct {
@@ -27,11 +30,24 @@ func (s *Scanner) IsAtEnd() bool {
 	return s.current >= len(s.Source)
 }
 
+func IsDigit(c byte) bool {
+	return c >= '0' && c <= '9'
+}
+
 func (s *Scanner) Peek() byte {
 	if s.IsAtEnd() {
-		return '0'
+		var bnil byte
+		return bnil
 	}
 	return s.Source[s.current]
+}
+
+func (s *Scanner) PeekNext() byte {
+	if s.current+1 >= len(s.Source) {
+		var bnil byte
+		return bnil
+	}
+	return s.Source[s.current+1]
 }
 
 func (s *Scanner) Match(expected byte) bool {
@@ -51,8 +67,12 @@ func (s *Scanner) Advance() byte {
 	return v
 }
 
+func (s *Scanner) CurrentSubstr() string {
+	return string(s.Source[s.start:s.current])
+}
+
 func (s *Scanner) AddToken(t TokenType, literal any) {
-	text := string(s.Source[s.start:s.current])
+	text := s.CurrentSubstr()
 	s.Tokens = append(s.Tokens, Token{t, text, literal, s.line})
 }
 
@@ -73,8 +93,34 @@ func (s *Scanner) AddString() {
 	}
 }
 
+func (s *Scanner) AddNumber() {
+	for IsDigit(s.Peek()) {
+		s.Advance()
+	}
+
+	fmt.Fprintln(os.Stderr, "read left part of number literal", s.start, s.current, s.CurrentSubstr())
+
+	if s.Peek() == '.' && IsDigit(s.PeekNext()) {
+		fmt.Fprintln(os.Stderr, "saw dot followed by digit", s.start, s.current, s.CurrentSubstr())
+		s.Advance()
+		for IsDigit(s.Peek()) {
+			fmt.Fprintln(os.Stderr, "\treading decimal digits", s.start, s.current, s.CurrentSubstr(), string(s.Peek()), IsDigit(s.Peek()))
+			s.Advance()
+		}
+	}
+
+	raw := s.CurrentSubstr()
+	n, err := strconv.ParseFloat(raw, 64)
+	if err != nil {
+		log.Fatalf("unable to parse number literal %v: %v", raw, err)
+	}
+	fmt.Fprintf(os.Stderr, "raw: %v -> float: %v\n", raw, n)
+	s.AddToken(Number, n)
+}
+
 func (s *Scanner) ScanToken() {
-	switch s.Advance() {
+	c := s.Advance()
+	switch c {
 	case '(':
 		s.AddToken(LeftParen, nil)
 	case ')':
@@ -135,15 +181,18 @@ func (s *Scanner) ScanToken() {
 	case '"':
 		s.AddString()
 	default:
-		text := string(s.Source[s.start:s.current])
-		msg := fmt.Sprintf("[line %d] Error: Unexpected character: %v\n", s.line, text)
-		s.Errors = append(s.Errors, msg)
+		if IsDigit(c) {
+			s.AddNumber()
+		} else {
+			text := string(s.Source[s.start:s.current])
+			msg := fmt.Sprintf("[line %d] Error: Unexpected character: %v\n", s.line, text)
+			s.Errors = append(s.Errors, msg)
+		}
 	}
 }
 
 func (s *Scanner) ScanTokens() []Token {
 	for i := 0; !s.IsAtEnd(); i++ {
-		// fmt.Fprintf(os.Stderr, "[ScanTokens] i:%v | IsAtEnd:%v\n", i, s.IsAtEnd())
 		s.start = s.current
 		s.ScanToken()
 	}
