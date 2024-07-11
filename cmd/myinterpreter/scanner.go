@@ -25,6 +25,13 @@ func (s *Scanner) IsAtEnd() bool {
 	return s.current >= len(s.Source)
 }
 
+func (s *Scanner) Peek() byte {
+	if s.IsAtEnd() {
+		return '0'
+	}
+	return s.Source[s.current]
+}
+
 func (s *Scanner) Match(expected byte) bool {
 	if s.IsAtEnd() {
 		return false
@@ -100,6 +107,14 @@ func (s *Scanner) ScanToken() {
 			ttype = GreaterEqual
 		}
 		s.AddToken(ttype, nil)
+	case '/':
+		if s.Match('/') {
+			for s.Peek() != '\n' && !s.IsAtEnd() {
+				s.Advance()
+			}
+		} else {
+			s.AddToken(Slash, nil)
+		}
 	default:
 		s.AddError()
 	}
