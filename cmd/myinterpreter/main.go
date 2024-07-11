@@ -27,9 +27,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	if len(contents) > 0 {
-		panic("Scanner not implemented")
-	} else {
-		fmt.Println("EOF  null") // Placeholder, remove this line when implementing the scanner
+	scanner := NewScanner(contents)
+	for _, t := range scanner.ScanTokens() {
+		fmt.Println(t.String())
 	}
+
+	fmt.Fprintln(os.Stderr, "=== End ===")
 }
