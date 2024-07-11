@@ -25,6 +25,17 @@ func (s *Scanner) IsAtEnd() bool {
 	return s.current >= len(s.Source)
 }
 
+func (s *Scanner) Match(expected byte) bool {
+	if s.IsAtEnd() {
+		return false
+	}
+	if s.Source[s.current] != expected {
+		return false
+	}
+	s.current += 1
+	return true
+}
+
 func (s *Scanner) Advance() byte {
 	v := s.Source[s.current]
 	s.current += 1
@@ -65,6 +76,30 @@ func (s *Scanner) ScanToken() {
 		s.AddToken(Semicolon, nil)
 	case '*':
 		s.AddToken(Star, nil)
+	case '!':
+		ttype := Bang
+		if s.Match('=') {
+			ttype = BangEqual
+		}
+		s.AddToken(ttype, nil)
+	case '=':
+		ttype := Equal
+		if s.Match('=') {
+			ttype = EqualEqual
+		}
+		s.AddToken(ttype, nil)
+	case '<':
+		ttype := Less
+		if s.Match('=') {
+			ttype = LessEqual
+		}
+		s.AddToken(ttype, nil)
+	case '>':
+		ttype := Greater
+		if s.Match('=') {
+			ttype = GreaterEqual
+		}
+		s.AddToken(ttype, nil)
 	default:
 		s.AddError()
 	}
