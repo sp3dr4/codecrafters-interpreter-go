@@ -1,6 +1,8 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
 type Scanner struct {
 	Source  []byte
@@ -50,15 +52,25 @@ func (s *Scanner) Advance() byte {
 }
 
 func (s *Scanner) AddToken(t TokenType, literal any) {
-	// fmt.Fprintf(os.Stderr, "[AddToken] start:%v | current:%v\n", s.start, s.current)
 	text := string(s.Source[s.start:s.current])
 	s.Tokens = append(s.Tokens, Token{t, text, literal, s.line})
 }
 
-func (s *Scanner) AddError() {
-	text := string(s.Source[s.start:s.current])
-	msg := fmt.Sprintf("[line %d] Error: Unexpected character: %v\n", s.line, text)
-	s.Errors = append(s.Errors, msg)
+func (s *Scanner) AddString() {
+	for s.Peek() != '"' && !s.IsAtEnd() {
+		if s.Peek() == '\n' {
+			s.line += 1
+		}
+		s.Advance()
+	}
+
+	if s.IsAtEnd() {
+		s.Errors = append(s.Errors, fmt.Sprintf("[line %d] Error: Unterminated string.\n", s.line))
+	} else {
+		s.Advance()
+		val := string(s.Source[s.start+1 : s.current-1])
+		s.AddToken(String, val)
+	}
 }
 
 func (s *Scanner) ScanToken() {
@@ -120,8 +132,12 @@ func (s *Scanner) ScanToken() {
 	case '\t':
 	case '\n':
 		s.line += 1
+	case '"':
+		s.AddString()
 	default:
-		s.AddError()
+		text := string(s.Source[s.start:s.current])
+		msg := fmt.Sprintf("[line %d] Error: Unexpected character: %v\n", s.line, text)
+		s.Errors = append(s.Errors, msg)
 	}
 }
 

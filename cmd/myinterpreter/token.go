@@ -24,6 +24,7 @@ const (
 	GreaterEqual
 	Less
 	LessEqual
+	String
 	EOF
 )
 
@@ -47,6 +48,7 @@ var tokenTypeName = map[TokenType]string{
 	GreaterEqual: "GREATER_EQUAL",
 	Less:         "LESS",
 	LessEqual:    "LESS_EQUAL",
+	String:       "STRING",
 	EOF:          "EOF",
 }
 
@@ -62,6 +64,14 @@ type Token struct {
 }
 
 func (t *Token) String() string {
-	l := "null" // t.Literal
-	return fmt.Sprintf("%s %s %v", t.Type.String(), t.Lexeme, l)
+	var l string
+	switch v := t.Literal.(type) {
+	case nil:
+		l = "null"
+	case string:
+		l = v
+	default:
+		l = fmt.Sprintf("%v", v)
+	}
+	return fmt.Sprintf("%s %s %s", t.Type.String(), t.Lexeme, l)
 }
