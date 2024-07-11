@@ -34,6 +34,16 @@ func IsDigit(c byte) bool {
 	return c >= '0' && c <= '9'
 }
 
+func IsAlpha(c byte) bool {
+	return (c >= 'a' && c <= 'z') ||
+		(c >= 'A' && c <= 'Z') ||
+		c == '_'
+}
+
+func IsAlphaNumeric(c byte) bool {
+	return IsAlpha(c) || IsDigit(c)
+}
+
 func (s *Scanner) Peek() byte {
 	if s.IsAtEnd() {
 		var bnil byte
@@ -118,6 +128,19 @@ func (s *Scanner) AddNumber() {
 	s.AddToken(Number, n)
 }
 
+func (s *Scanner) AddIdentifier() {
+	for IsAlphaNumeric(s.Peek()) {
+		s.Advance()
+	}
+
+	text := s.CurrentSubstr()
+	ttype, ok := KeyWords[text]
+	if !ok {
+		ttype = Identifier
+	}
+	s.AddToken(ttype, nil)
+}
+
 func (s *Scanner) ScanToken() {
 	c := s.Advance()
 	switch c {
@@ -183,6 +206,8 @@ func (s *Scanner) ScanToken() {
 	default:
 		if IsDigit(c) {
 			s.AddNumber()
+		} else if IsAlpha(c) {
+			s.AddIdentifier()
 		} else {
 			text := string(s.Source[s.start:s.current])
 			msg := fmt.Sprintf("[line %d] Error: Unexpected character: %v\n", s.line, text)

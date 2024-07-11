@@ -30,6 +30,24 @@ const (
 	String
 	Number
 	EOF
+	Identifier
+	// keywords
+	And
+	Class
+	Else
+	False
+	For
+	Fun
+	If
+	Nil
+	Or
+	Print
+	Return
+	Super
+	This
+	True
+	Var
+	While
 )
 
 var tokenTypeName = map[TokenType]string{
@@ -55,6 +73,23 @@ var tokenTypeName = map[TokenType]string{
 	String:       "STRING",
 	Number:       "NUMBER",
 	EOF:          "EOF",
+	Identifier:   "IDENTIFIER",
+	And:          "AND",
+	Class:        "CLASS",
+	Else:         "ELSE",
+	False:        "FALSE",
+	For:          "FOR",
+	Fun:          "FUN",
+	If:           "IF",
+	Nil:          "NIL",
+	Or:           "OR",
+	Print:        "PRINT",
+	Return:       "RETURN",
+	Super:        "SUPER",
+	This:         "THIS",
+	True:         "TRUE",
+	Var:          "VAR",
+	While:        "WHILE",
 }
 
 func (tt TokenType) String() string {
